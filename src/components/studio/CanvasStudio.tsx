@@ -12,6 +12,7 @@ import {
   Film,
   Eraser,
 } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 type Point = { x: number; y: number };
 
@@ -110,7 +111,9 @@ const CanvasStudio: React.FC = () => {
   const clearCanvas = () => {
     const c = canvasRef.current;
     if (!c || !ctx.current) return;
-    ctx.current.clearRect(0, 0, c.width, c.height);
+    const context = ctx.current;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, c.width, c.height);
     toast.success("Lienzo nuevo");
   };
 
@@ -175,6 +178,7 @@ const CanvasStudio: React.FC = () => {
             <Button variant="toolbar" size="sm"><Brush className="mr-1" />2D</Button>
             <Button variant="toolbar" size="sm"><Box className="mr-1" />3D</Button>
             <Button variant="toolbar" size="sm"><Film className="mr-1" />Animación</Button>
+            <ThemeSwitcher />
           </div>
         </div>
       </header>
@@ -189,11 +193,11 @@ const CanvasStudio: React.FC = () => {
             <div className="relative rounded-lg border border-border bg-card overflow-hidden">
               <div
                 ref={containerRef}
-                className="relative h-[60vh] md:h-[70vh]"
+                className="relative h-[60vh] md:h-[70vh] bg-muted"
               >
                 <canvas
                   ref={canvasRef}
-                  className="absolute inset-0 cursor-crosshair bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 20 20\'%3E%3Cpath fill=\'%23f0f0f0\' d=\'M10 0h10v10H10zM0 10h10v10H0z\'/%3E%3C/svg%3E')] shadow"
+                  className="absolute inset-0 cursor-crosshair shadow"
                   onPointerDown={startDrawing}
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
