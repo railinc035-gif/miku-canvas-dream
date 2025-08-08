@@ -1,12 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from "react-helmet-async";
+import CanvasStudio from "@/components/studio/CanvasStudio";
 
 const Index = () => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Miku Studio | Estudio de Arte y Animación 2D/3D</title>
+        <meta name="description" content="Crea arte 2D y 3D con un lienzo moderno. Pinceles, colores y exportación PNG en un estudio elegante." />
+        <link rel="canonical" href={`${origin}/`} />
+        <meta property="og:title" content="Miku Studio" />
+        <meta property="og:description" content="Estudio de Arte y Animación 2D/3D" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      <h1 className="sr-only">Miku Studio - Estudio de Arte y Animación 2D/3D</h1>
+      <CanvasStudio />
     </div>
   );
 };
