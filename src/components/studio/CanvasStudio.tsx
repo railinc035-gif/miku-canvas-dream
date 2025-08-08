@@ -12,6 +12,7 @@ import {
   Film,
   Eraser,
 } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 type Point = { x: number; y: number };
 
@@ -175,6 +176,7 @@ const CanvasStudio: React.FC = () => {
             <Button variant="toolbar" size="sm"><Brush className="mr-1" />2D</Button>
             <Button variant="toolbar" size="sm"><Box className="mr-1" />3D</Button>
             <Button variant="toolbar" size="sm"><Film className="mr-1" />Animación</Button>
+            <ThemeSwitcher />
           </div>
         </div>
       </header>
