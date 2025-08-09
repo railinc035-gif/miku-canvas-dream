@@ -99,6 +99,52 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .dark-red {
+    --background: 0 0% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 0 84% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 0 84% 60%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 0 84% 60%;
+
+    /* Brand & effects */
+    --brand: 0 84% 60%;
+    --brand-contrast: 210 40% 98%;
+    --accent-strong: 0 90% 54%;
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)), hsl(var(--accent-strong)));
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand) / 0.35);
+
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 0 84% 60%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 84% 60%;
+  }
 }
 
 @layer base {
@@ -108,5 +154,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .app-title {
+    color: #0d0d0d;
+    text-shadow: 0 0 5px red, 0 0 10px red;
+  }
+  .dark .app-title, .dark-red .app-title {
+    color: #fff;
+    text-shadow: 0 0 5px red, 0 0 10px red;
   }
 }
