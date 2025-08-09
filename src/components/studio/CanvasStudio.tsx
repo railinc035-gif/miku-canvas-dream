@@ -10,8 +10,11 @@ import {
   Brush,
   Box,
   Film,
-  Eraser,
 } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { createBrush } from "@/lib/brushes";
+import { LeftToolbar } from "./LeftToolbar";
+import { RightToolbar } from "./RightToolbar";
 
 type Point = { x: number; y: number };
 
@@ -35,8 +38,13 @@ const CanvasStudio: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[2]);
-  const [brush, setBrush] = useState(8);
+  const [brushWidth, setBrushWidth] = useState(8);
+  const [brushType, setBrushType] = useState("pen");
   const [pointer, setPointer] = useState<Point>({ x: 0, y: 0 });
+
+  const brush = useMemo(() => {
+    return createBrush(brushType, color, brushWidth);
+  }, [brushType, color, brushWidth]);
 
   const ctx = useRef<CanvasRenderingContext2D | null>(null);
   const lastPoint = useRef<Point | null>(null);
@@ -49,7 +57,6 @@ const CanvasStudio: React.FC = () => {
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const rect = container.getBoundingClientRect();
 
-    // Avoid zero sizes before layout settles
     const width = Math.max(1, Math.floor(rect.width));
     const height = Math.max(1, Math.floor(rect.height));
 
@@ -64,6 +71,10 @@ const CanvasStudio: React.FC = () => {
     context.lineCap = "round";
     context.lineJoin = "round";
     context.imageSmoothingEnabled = true;
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.current = context;
   };
 
@@ -72,7 +83,6 @@ const CanvasStudio: React.FC = () => {
     const onResize = () => setupCanvas();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
@@ -83,34 +93,29 @@ const CanvasStudio: React.FC = () => {
 
   const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!ctx.current) return;
-    const p = getPos(e);
-    lastPoint.current = p;
     setIsDrawing(true);
+    const p = getPos(e);
+    brush.onPointerDown(ctx.current, p, lastPoint);
   };
 
   const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     setPointer({ x: e.clientX, y: e.clientY });
     if (!isDrawing || !ctx.current) return;
     const p = getPos(e);
-    const lp = lastPoint.current ?? p;
-    ctx.current.strokeStyle = color;
-    ctx.current.lineWidth = brush;
-    ctx.current.beginPath();
-    ctx.current.moveTo(lp.x, lp.y);
-    ctx.current.lineTo(p.x, p.y);
-    ctx.current.stroke();
-    lastPoint.current = p;
+    brush.onPointerMove(ctx.current, p, lastPoint);
   };
 
   const endDrawing = () => {
     setIsDrawing(false);
-    lastPoint.current = null;
+    brush.onPointerUp(lastPoint);
   };
 
   const clearCanvas = () => {
     const c = canvasRef.current;
     if (!c || !ctx.current) return;
-    ctx.current.clearRect(0, 0, c.width, c.height);
+    const context = ctx.current;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, c.width, c.height);
     toast.success("Lienzo nuevo");
   };
 
@@ -161,10 +166,9 @@ const CanvasStudio: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-[radial-gradient(80%_60%_at_50%_-20%,hsl(var(--muted)/0.5),transparent)]">
-      {/* Top toolbar */}
       <header className="sticky top-0 z-20 w-full backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b border-border">
         <div className="container flex h-14 items-center gap-2">
-          <div className="font-semibold tracking-tight text-lg text-primary">Miku Studio</div>
+          <div className="font-semibold tracking-tight text-lg app-title">Paint wisión studio</div>
           <div className="flex items-center gap-2">
             <Button variant="toolbar" size="sm" onClick={clearCanvas}><FilePlus className="mr-1" />Nuevo</Button>
             <Button variant="toolbar" size="sm" onClick={openLocal}><FolderOpen className="mr-1" />Abrir</Button>
@@ -175,25 +179,23 @@ const CanvasStudio: React.FC = () => {
             <Button variant="toolbar" size="sm"><Brush className="mr-1" />2D</Button>
             <Button variant="toolbar" size="sm"><Box className="mr-1" />3D</Button>
             <Button variant="toolbar" size="sm"><Film className="mr-1" />Animación</Button>
+            <ThemeSwitcher />
           </div>
         </div>
       </header>
 
-      {/* Pointer glow signature */}
-      <div className="pointer-events-none absolute z-0 h-[600px] w-[600px] rounded-full blur-3xl opacity-40 transition-transform duration-200" style={glowStyle} />
-
-      {/* Canvas area */}
       <main className="relative z-10">
         <div className="container">
-          <div className="relative mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-            <div className="relative rounded-lg border border-border bg-card overflow-hidden">
+          <div className="relative mt-6 grid grid-cols-1 lg:grid-cols-[auto_1fr_320px] gap-6">
+            <LeftToolbar brushType={brushType} setBrushType={setBrushType} />
+            <div className="relative rounded-lg border border-border bg-card overflow-hidden col-span-1">
               <div
                 ref={containerRef}
-                className="relative h-[60vh] md:h-[70vh]"
+                className="relative h-[60vh] md:h-[70vh] bg-muted"
               >
                 <canvas
                   ref={canvasRef}
-                  className="absolute inset-0 cursor-crosshair bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 20 20\'%3E%3Cpath fill=\'%23f0f0f0\' d=\'M10 0h10v10H10zM0 10h10v10H0z\'/%3E%3C/svg%3E')] shadow"
+                  className="absolute inset-0 cursor-crosshair shadow"
                   onPointerDown={startDrawing}
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
@@ -201,43 +203,13 @@ const CanvasStudio: React.FC = () => {
                 />
               </div>
             </div>
-
-            {/* Tools panel */}
-            <aside className="rounded-lg border border-border bg-card p-4">
-              <h2 className="text-sm font-medium mb-3 text-muted-foreground">Pincel</h2>
-              <div className="flex items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={() => setColor("#ffffff")}>
-                  <Eraser className="mr-1" />Borrar</Button>
-              </div>
-
-              <div className="mt-4">
-                <div className="text-xs mb-2 text-muted-foreground">Tamaño ({brush}px)</div>
-                <Slider value={[brush]} min={1} max={48} step={1} onValueChange={([v]) => setBrush(v)} />
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs mb-2 text-muted-foreground">Colores</div>
-                <div className="grid grid-cols-8 gap-2">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      aria-label={`Color ${c}`}
-                      onClick={() => setColor(c)}
-                      className={`h-7 w-7 rounded border border-border transition-transform hover:scale-105 ${color === c ? "ring-2 ring-ring" : ""}`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <Button variant="hero" className="w-full">Comenzar a crear</Button>
-              </div>
-
-              <p className="mt-4 text-xs text-muted-foreground">
-                Consejo: Mantén pulsado y dibuja. Exporta tu obra como PNG cuando quieras.
-              </p>
-            </aside>
+            <RightToolbar
+              brushWidth={brushWidth}
+              setBrushWidth={setBrushWidth}
+              color={color}
+              setColor={setColor}
+              COLORS={COLORS}
+            />
           </div>
         </div>
       </main>
